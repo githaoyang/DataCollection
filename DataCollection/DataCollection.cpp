@@ -38,6 +38,7 @@ DataCollection::DataCollection(QWidget *parent)
 	setIntegrationTime3DHDRSlot();
 
 
+
 }
 
 //连接按钮点击事件槽
