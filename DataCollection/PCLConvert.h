@@ -34,7 +34,7 @@ public:
 	PCLConvert();
 	~PCLConvert();
 	void setConvertParameter(double fx, double fy, double cx, double cy, double k1, double k2, double p1, double p2, double k3);	//设置转换参数
-	void getPointCloud(cv::Mat img, int filterLevel);		//计算点云
+	void getPointCloud(cv::Mat img, int filterLevel = 0);		//计算点云
 	void filterCloud(int distanceFilterParameter,
 		int radiusFilterRadiusParameter, int radiusFilterPointParameter, int ransacFilterParameter);
 	void convertToPhoto(cv::Mat& img, cv::Mat rawImg);

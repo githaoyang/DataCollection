@@ -53,9 +53,9 @@ void PCLConvert::getPointCloud(cv::Mat img, int filterLevel)
 			float dist = img.at<ushort>(i, j);				//原始图像深度
 
 			//降低点云数量
-			if (filterLevel)
+			/*if (filterLevel)
 				if ((i % filterLevel) || (j % filterLevel))
-					continue;
+					continue;*/
 
 			//过滤无效点
 			if (dist == 0 || dist >= 30000)
@@ -158,12 +158,12 @@ void  PCLConvert::filterCloud(int distanceFilterParameter,
 	extract.filter(*pointcloud);
 	
 	//半径滤波
-	pcl::RadiusOutlierRemoval<PointT> outrem;
-	outrem.setInputCloud(pointcloud);
-	outrem.setRadiusSearch(radiusFilterRadiusParameter);
-	outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
-	// apply filter
-	outrem.filter(*pointcloud);
+	//pcl::RadiusOutlierRemoval<PointT> outrem;
+	//outrem.setInputCloud(pointcloud);
+	//outrem.setRadiusSearch(radiusFilterRadiusParameter);
+	//outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
+	//// apply filter
+	//outrem.filter(*pointcloud);
 	
 	//分割出人物所在的点云团（找最大的点云）
 	pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>);
@@ -206,11 +206,7 @@ bool comp(pcl::PointIndices a, pcl::PointIndices b)
 
 void PCLConvert::convertToPhoto(cv::Mat & img, cv::Mat rawImg)
 {
-	if (distanceMap.empty())
-	{
-		img = rawImg.clone();
-		return;
-	}
+
 	for (auto i : pointcloud->points)
 	{
 		std::pair<int, int> posi = distanceMap[i.z];

@@ -25,7 +25,7 @@ public:
 	cv::Mat rawDepthImg;
 	cv::Mat miniDepthImg;
 	cv::Mat img_show;
-	cv::Mat peopleImg;
+
 	bool isPointCloudConvert = false;	//是否点云转换
 	bool isBodyPhotoConvert = false;	//是否提取人物身体图片
 
@@ -40,7 +40,7 @@ private:
 
 	bool isRun = false;					//是否运行
 
-	int  pointFilterSize = 3;			//点云密度设置（平衡点云和速度）
+	int  pointFilterSize = 0;			//点云密度设置（平衡点云和速度）
 
 
 };
