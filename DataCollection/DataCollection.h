@@ -25,6 +25,7 @@ VTK_MODULE_INIT(vtkInteractionStyle);
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
+#include "ImageProcess.h"
 
 using namespace std;
 using namespace cv;
@@ -36,6 +37,7 @@ class DataCollection : public QWidget
 public:
     DataCollection(QWidget *parent = Q_NULLPTR);
 	DCam *g_dcam;
+	ImageProcess *g_imageProcess;
 	void showImage(cv::Mat imshowsrc);//显示图像
 	void showFrame(float frame); //显示帧率
 	
@@ -58,8 +60,8 @@ private:
 
 private slots:
 	void imageUpdateSlot(cv::Mat img, float frame, int isImg);	//更新图像信号
-	void bodyImageUpdateSlot();
-	void pointCloudUpdateSlot(PointCloudT::Ptr c);	//更新点云信息
+	void bodyImageUpdateSlot(cv::Mat);
+	void pointCloudUpdateSlot(PointCloudT::Ptr);	//更新点云信息
 	void connectButtonPressedSlot();	//连接按钮点击槽
 	void setIntegrationTime3DSlot();	//设置3D积分时间
 	void setIntegrationTime3DHDRSlot(); 

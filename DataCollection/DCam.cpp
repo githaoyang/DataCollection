@@ -17,8 +17,7 @@ DCam::DCam()
 {
 	//声明信号传递变量类型
 	qRegisterMetaType<cv::Mat >("cv::Mat");
-	qRegisterMetaType<PointCloudT::Ptr>("PointCloudT::Ptr");
-	g_imageProcess = new ImageProcess();
+	//qRegisterMetaType<PointCloudT::Ptr>("PointCloudT::Ptr");
 	g_depthprocess = new Imagedepthprocess();
 }
 
@@ -40,9 +39,6 @@ void DCam::run()
 	char ptr_buf[MAXLINE];  //存储缓存区
 	int n = -1;
 
-	//设置校正参数
-	setCameraParameters(306.2581793, 306.231918150968, 168.733463661578, 
-		127.631101483708, -0.187431077194205, 0.727853724252657, 0, 0, -0.967607914754638);
 
 	//相机参数
 	g_Tcpsocket._ip = ip;
@@ -124,7 +120,6 @@ void DCam::run()
 		}
 		
 		cv::Mat img_show;	
-		peopleImg = cv::Mat::zeros(cv::Size(320, 240), CV_8UC1);
 
 		g_depthprocess->isHDR = isHDR;
 		g_depthprocess->isRawCalibration = isRawCalibration;
@@ -172,12 +167,6 @@ void DCam::setPointcloudConvert(bool isConvert)
 	this->isPointCloudConvert = isConvert;
 }
 
-//设置相机内参、畸变系数
-void DCam::setCameraParameters(double fx, double fy, double cx, double cy, double k1, double k2, double p1, double p2, double k3)
-{
-	g_pclConvert.setConvertParameter(fx, fy, cx, cy, k1, k2, 0, 0, 0);
-	//g_depthprocess->setConvertParameter(fx, fy, cx, cy, k1, k2, 0, 0, k3);
-}
 
 //获取运行状态
 bool DCam::getRunState()

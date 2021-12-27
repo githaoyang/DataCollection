@@ -5,7 +5,7 @@ Imagedepthprocess::Imagedepthprocess()
 {
 	_matimg_short.create(Img_height, Img_width, CV_16UC1);
 	_matimg_show.create(Img_height, Img_width, CV_16UC1);
-	img_color.create(imgSize, CV_8UC1);						//构造RGB图像
+	img_gray.create(imgSize, CV_8UC1);						//构造RGB图像
 }
 Imagedepthprocess::~Imagedepthprocess()
 {
@@ -84,6 +84,7 @@ Mat Imagedepthprocess::depthProcess()
 	min = 3000;
 	double interdepth = 255.0 / max;
 	
+	//16位转8位
 	for (int i = 0; i < 240; i++)
 	{
 		for (int j = 0; j < 320; j++)
@@ -92,13 +93,13 @@ Mat Imagedepthprocess::depthProcess()
 			{
 				_matimg_short.at<ushort>(i, j) = max+min;
 			}
-			img_color.at<uchar>(i, j) = (uchar)((_matimg_short.at<ushort>(i, j) - min)*interdepth);
+			img_gray.at<uchar>(i, j) = (uchar)((_matimg_short.at<ushort>(i, j) - min)*interdepth);
 		}
 	}
 	//pngImg.convertTo(grayImg, CV_8UC1, 1 / 255.0);
 	saveImage();
 
-	return img_color.clone();
+	return img_gray.clone();
 }
 //获取深度数据
 //返回：Mat类型
@@ -228,7 +229,7 @@ void  Imagedepthprocess::calculationAddOffset(ushort *img)
 }
 
 
-
+/*
 //设置伪彩色参数
 void Imagedepthprocess::setColorImage()
 {
@@ -322,6 +323,8 @@ void Imagedepthprocess::setColorImage()
 	}
 
 }
+*/
+
 //保存深度图
 void Imagedepthprocess::saveImage()
 {

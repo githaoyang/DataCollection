@@ -3,11 +3,13 @@
 ImageProcess::ImageProcess(QObject *parent)
 	: QThread(parent)
 {
-	imageProcess();
+	ImageProcess();
 }
 
 ImageProcess::ImageProcess()
 {
+
+
 	//声明信号传递变量类型
 	qRegisterMetaType<cv::Mat >("cv::Mat");
 	qRegisterMetaType<PointCloudT::Ptr>("PointCloudT::Ptr"); 
@@ -18,22 +20,29 @@ ImageProcess::ImageProcess()
 
 void ImageProcess::run()
 {
-
+	while(1)
+	{
+		peopleImg = cv::Mat::zeros(cv::Size(320, 240), CV_8UC1);
 	if (isPointCloudConvert || isBodyPhotoConvert)
 	{
+		rawDepthImg = g_depthprocess->getDepth();
 		//点云变换
-		g_pclConvert.getPointCloud(g_depthprocess->getDepth(), pointFilterSize);
+		g_pclConvert->getPointCloud(rawDepthImg, pointFilterSize);
 		if (isPointCloudConvert)
 		{
-			g_pclConvert.filterCloud(10000, 150, 25, 200);
-			emit(getPointCloud(g_pclConvert.pointcloud));
+			g_pclConvert->filterCloud(10000, 150, 25, 200);
+			//;
+			emit(getPointCloud(g_pclConvert->pointcloud));
 		}
 		if (isBodyPhotoConvert)
 		{
-			g_pclConvert.convertToPhoto(peopleImg, img_show);
+			cv::Mat gray = ~g_depthprocess->img_gray;
+			g_pclConvert->convertToPhoto(peopleImg, gray);
 
-			emit getBodyPhoto();//peopleImg
+			emit getBodyPhoto(peopleImg);//peopleImg
 		}
 		//
+	}
+
 	}
 }

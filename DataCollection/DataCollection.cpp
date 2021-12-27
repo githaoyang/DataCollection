@@ -6,6 +6,8 @@ DataCollection::DataCollection(QWidget *parent)
     ui.setupUi(this);
 	g_dcam = new DCam();
 
+	g_imageProcess = new ImageProcess();
+	g_imageProcess->g_depthprocess = g_dcam->g_depthprocess;
 
 	//点云初始化
 	cloud.reset(new PointCloudT);
@@ -30,9 +32,8 @@ DataCollection::DataCollection(QWidget *parent)
 	QObject::connect(ui.IntegrationtimeHDRlineEdit, SIGNAL(editingFinished()), this, SLOT(setIntegrationTime3DHDRSlot()));	
 
 	QObject::connect(g_dcam, SIGNAL(getImage(cv::Mat,float,int)), this, SLOT(imageUpdateSlot(cv::Mat,float,int)));	//设置连接槽
-	QObject::connect(g_dcam, SIGNAL(getPointCloud(PointCloudT::Ptr)), this, SLOT(pointCloudUpdateSlot(PointCloudT::Ptr)));		//设置槽连接
-
-	QObject::connect(g_dcam, SIGNAL(getBodyPhoto()), this, SLOT(bodyImageUpdateSlot()));		//设置槽连接
+	QObject::connect(g_imageProcess, SIGNAL(getPointCloud(PointCloudT::Ptr)), this, SLOT(pointCloudUpdateSlot(PointCloudT::Ptr)));		//设置槽连接
+	QObject::connect(g_imageProcess, SIGNAL(getBodyPhoto(cv::Mat)), this, SLOT(bodyImageUpdateSlot(cv::Mat)));		//设置槽连接
 	
 
 	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(browseButtonPressedSlot()));
@@ -66,6 +67,7 @@ void DataCollection::connectButtonPressedSlot()
 		g_dcam->setNet(ip, port);						 //初始化相机类
 
 		g_dcam->start();	//线程启动
+		g_imageProcess->start();		//线程启动
 
 		//按钮状态改变
 		QPalette pa;
@@ -197,16 +199,9 @@ void DataCollection::setHDRSlot()
 }
 
 
-void DataCollection::bodyPhotoConcertSlot()
-{ 
-	g_dcam->isBodyPhotoConvert = ui.bodySegmentCheckBox->isChecked();
-	
-}
-
-
-void DataCollection::bodyImageUpdateSlot()
+void DataCollection::bodyImageUpdateSlot(cv::Mat img)
 {
-	Mat img = g_dcam->peopleImg;
+	//Mat img = g_imageProcess->peopleImg.clone();
 	QImage image = QImage((img.data), img.cols, img.rows, QImage::Format_Grayscale8);
 	ui.Seg_label->setPixmap(QPixmap::fromImage(image));
 	ui.Seg_label->repaint();
@@ -223,8 +218,9 @@ void DataCollection::showFrame(float frame)
 //输入：c 点云指针
 void DataCollection::pointCloudUpdateSlot(PointCloudT::Ptr c)
 {
-	//点云数据更新
 	cloud = c;
+	//点云数据更新
+	//pcl::copyPointCloud(*(g_imageProcess->g_pclConvert->pointcloud), *cloud);
 	showPointCloud();
 }
 
@@ -242,7 +238,13 @@ void DataCollection::showPointCloud()
 //显示点云
 void DataCollection::pclConvertSlot()
 {
-	g_dcam->setPointcloudConvert(ui.pointCloudCheckBox->isChecked());
+	g_imageProcess->isPointCloudConvert = ui.pointCloudCheckBox->isChecked();
+}
+
+
+void DataCollection::bodyPhotoConcertSlot()
+{
+	g_imageProcess->isBodyPhotoConvert = ui.bodySegmentCheckBox->isChecked();
 }
 
 void DataCollection::browseButtonPressedSlot()

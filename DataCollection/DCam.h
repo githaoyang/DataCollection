@@ -14,8 +14,6 @@
 
 #include "TinySocket.h"
 #include "Depthprocess.h"
-#include "PCLConvert.h"
-#inlcude "ImageProcess.h"
 
 
 #define COLORMAP_MAX_DEPTH 30000
@@ -31,11 +29,11 @@ public:
 	DCam();
 	DCam(std::string ip, int port);
 	~DCam();
+	Imagedepthprocess *g_depthprocess;	//原始图像处理类
 	void setRun(bool isRun);					//设置线程停止
 	void setNet(std::string ip, int port);		//设置相机IP，端口
 	void setPointcloudConvert(bool isConvert);	//设置点云显示
 	cv::Mat  getDepth();							//获取深度图像
-	void setCameraParameters(double fx, double fy, double cx, double cy, double k1, double k2, double p1, double p2, double k3);	//设置相机内参、畸变系数
 	int  setRealTemperature(char *buf);			//获取相机温度
 	bool getRunState();							//获取运行状态
 	void setColormapPoint(bool stat);			//设置点云伪彩色标志
@@ -72,22 +70,18 @@ public:
 	cv::VideoWriter write;
 	bool issaveVideo = false;		//是够开始保存视频标志位
 	bool isBodyPhotoConvert = false;	//是否提取人物身体图片
-	cv::Mat peopleImg;
 
 signals: 
-	void getBodyPhoto( );
+	//void getBodyPhoto( );
 	void getImage(cv::Mat,float, int);//获取图像后信号,Mat格式传回图像信息，第一个int为返回帧率，第二int传回是否是图像0不是图像，1是图像，-1异常
-	void getPointCloud(PointCloudT::Ptr);	//获取点云信号
+	//void getPointCloud(PointCloudT::Ptr);	//获取点云信号
 
 
 protected:
 	void run();							//继承自QThread，线程运行函数
 
 private:
-	Imagedepthprocess *g_depthprocess;	//原始图像处理类
-	ImageProcess *g_imageProcess;
 	CTinySocket	g_Tcpsocket;			//SOCKET类
-	PCLConvert	g_pclConvert;			//点云转换使用
 	bool isRun = false;					//是否运行
 	bool isPointCloudConvert = false;	//是否点云转换
 	bool isColormapPoint = false;		//是否点云伪彩色

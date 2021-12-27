@@ -2,8 +2,10 @@
 
 
 PCLConvert::PCLConvert()
-{
-	setConvertParameter(296, 296, 160, 120, 0, 0, 0, 0, 0);
+{ 
+	//设置校正参数
+	setConvertParameter(306.2581793, 306.231918150968, 168.733463661578,
+		127.631101483708, -0.187431077194205, 0.727853724252657, 0, 0, -0.967607914754638);
 }
 
 
@@ -69,8 +71,6 @@ void PCLConvert::getPointCloud(cv::Mat img, int filterLevel)
 				p.r = 250;
 				p.g = 250;
 				p.b = 250;
-			
-			p.a = 255;
 
 			pointcloud->points.push_back(p);
 		}
@@ -206,6 +206,11 @@ bool comp(pcl::PointIndices a, pcl::PointIndices b)
 
 void PCLConvert::convertToPhoto(cv::Mat & img, cv::Mat rawImg)
 {
+	if (distanceMap.empty())
+	{
+		img = rawImg.clone();
+		return;
+	}
 	for (auto i : pointcloud->points)
 	{
 		std::pair<int, int> posi = distanceMap[i.z];

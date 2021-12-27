@@ -36,7 +36,7 @@ public:
 	unsigned char* ptr_buf_unsigned;
 	cv::Mat _matimg_short;			//16bit数据
 	cv::Mat _matimg_show;			//16bit数据
-	cv::Mat  img_color;				//伪彩色数据
+	cv::Mat  img_gray;				 
 	ushort realTempChip;			//相机温度
 	int maxdepth=25000;				//映射最远距离    
 	int mindepth=100;					//映射最近距离
@@ -60,7 +60,7 @@ private:
 	void imageAverageEightConnectivity(ushort *depthdata);  //均值滤波
 	void calculationAddOffset(ushort *img);					//深度补偿
 
-	void setColorImage();									//设置伪彩色图
+	//void setColorImage();									//设置伪彩色图
 	void saveImage();										//保存深度图
 	void imageInpainting();									//修复HDR图
 	void undistImg(cv::Mat src, cv::Mat& dst);								//畸变校正
