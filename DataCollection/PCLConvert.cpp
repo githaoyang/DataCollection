@@ -30,11 +30,12 @@ void PCLConvert::setConvertParameter(double fx = 296, double fy = 296, double cx
 //colorMat：伪彩色图像，CV_U8C3格式
 //colormap：点云是否染色 true点云根据伪彩色图像染色 false全白色
 //filterLevel：点云过滤等级
-PointCloudT::Ptr PCLConvert::getPointCloud(cv::Mat img, cv::Mat colorMat, bool colormap, int filterLevel)
+void PCLConvert::getPointCloud(cv::Mat img, int filterLevel)
 {
-	PointCloudT::Ptr pointcloud(new PointCloudT);
+	pointcloud.reset(new PointCloudT());
+	distanceMap.clear();
 
-	img = undistImg(img);		//畸变矫正
+	//img = undistImg(img);		//畸变矫正
 
 	//点云变换
 	int imgWidth = img.size().width;
@@ -62,19 +63,13 @@ PointCloudT::Ptr PCLConvert::getPointCloud(cv::Mat img, cv::Mat colorMat, bool c
 			p.z = dist*cos(angle);									//坐标变换后的深度
 			p.x = -dist*sin(angle)*cos(picAngle);
 			p.y = -dist*sin(angle)*sin(picAngle);
+			distanceMap[p.z] = std::make_pair(i, j);
 
-			if (colormap)
-			{
-				p.b = colorMat.at<cv::Vec3b>(i, j)[0];
-				p.g = colorMat.at<cv::Vec3b>(i, j)[1];
-				p.r = colorMat.at<cv::Vec3b>(i, j)[2];
-			}
-			else
-			{
+			
 				p.r = 250;
 				p.g = 250;
 				p.b = 250;
-			}
+			
 			p.a = 255;
 
 			pointcloud->points.push_back(p);
@@ -86,8 +81,6 @@ PointCloudT::Ptr PCLConvert::getPointCloud(cv::Mat img, cv::Mat colorMat, bool c
 	{
 		pointcloud->resize(1);
 	}
-
-	return pointcloud;
 }
 
 cv::Mat PCLConvert::undistImg(cv::Mat src)
@@ -130,4 +123,92 @@ cv::Mat PCLConvert::undistImg(cv::Mat src)
 	remap(src, dst, map1, map2, cv::INTER_LINEAR);
 
 	return dst.clone();
+}
+
+
+void  PCLConvert::filterCloud(int distanceFilterParameter,
+	int radiusFilterRadiusParameter, int radiusFilterPointParameter, int ransacFilterParameter)
+{
+	// 创建滤波器对象，第一次对x卡阈值
+	//距离滤波
+	pcl::PassThrough<PointT> pass(true);
+	pass.setInputCloud(pointcloud);
+	pass.setFilterFieldName("z"); //通过x滤波
+	pass.setFilterLimits(0.0, distanceFilterParameter);
+	pass.setNegative(false);//设置为true，则输出范围外的点
+	pass.filter(*pointcloud);
+
+	//平面分割，去除地面
+	pcl::SACSegmentation<PointT> seg; // 创建一个分割方法
+	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);//申明模型的参数
+	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);//申明存储模型的内点的索引
+
+	seg.setOptimizeCoefficients(true); // 这一句可以选择最优化参数的因子
+	seg.setModelType(pcl::SACMODEL_PLANE);	//平面模型
+	seg.setMethodType(pcl::SAC_RANSAC);		//分割平面模型所使用的分割方法
+	seg.setDistanceThreshold(ransacFilterParameter); //设置最小的阀值距离
+
+	seg.setInputCloud(pointcloud); //设置输入的点云
+	seg.segment(*inliers, *coefficients);
+
+	pcl::ExtractIndices<PointT> extract; //ExtractIndices滤波器，基于某一分割算法提取点云中的一个子集
+	extract.setInputCloud(pointcloud);
+	extract.setIndices(inliers); //设置分割后的内点为需要提取的点集
+	extract.setNegative(true); //设置提取内点而非外点 或者相反
+	extract.filter(*pointcloud);
+	
+	//半径滤波
+	pcl::RadiusOutlierRemoval<PointT> outrem;
+	outrem.setInputCloud(pointcloud);
+	outrem.setRadiusSearch(radiusFilterRadiusParameter);
+	outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
+	// apply filter
+	outrem.filter(*pointcloud);
+	
+	//分割出人物所在的点云团（找最大的点云）
+	pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>);
+	tree->setInputCloud(pointcloud);
+	std::vector<pcl::PointIndices> cluster_indices;
+	pcl::EuclideanClusterExtraction<PointT> ec;
+	ec.setClusterTolerance(100); // 10cm
+	ec.setMinClusterSize(1000);
+	ec.setMaxClusterSize(25000);
+	ec.setSearchMethod(tree);
+	ec.setInputCloud(pointcloud);
+	ec.extract(cluster_indices);
+
+	if (cluster_indices.size() >= 1)
+	{
+		pcl::PointIndices maxCluster = *std::max_element(cluster_indices.begin(), cluster_indices.end(), comp);
+		if (maxCluster.indices.size() <= 0)
+		{
+			return;
+		}
+		PointCloudT::Ptr cloud_cluster(new pcl::PointCloud<PointT>);
+		for (int i = 0; i < maxCluster.indices.size(); i++)
+		{
+			cloud_cluster->push_back((*pointcloud)[maxCluster.indices[i]]);
+		}
+		cloud_cluster->width = cloud_cluster->size();
+		cloud_cluster->height = 1;
+		cloud_cluster->is_dense = true;
+
+		pcl::copyPointCloud(*cloud_cluster, *pointcloud);
+	}
+	
+}
+
+
+bool comp(pcl::PointIndices a, pcl::PointIndices b)
+{
+	return a.indices.size() < b.indices.size();
+}
+
+void PCLConvert::convertToPhoto(cv::Mat & img, cv::Mat rawImg)
+{
+	for (auto i : pointcloud->points)
+	{
+		std::pair<int, int> posi = distanceMap[i.z];
+		img.at<uchar>(posi.first, posi.second) = rawImg.at<uchar>(posi.first, posi.second);
+	}
 }

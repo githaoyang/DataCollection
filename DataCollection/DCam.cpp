@@ -18,6 +18,8 @@ DCam::DCam()
 	//声明信号传递变量类型
 	qRegisterMetaType<cv::Mat >("cv::Mat");
 	qRegisterMetaType<PointCloudT::Ptr>("PointCloudT::Ptr");
+	g_imageProcess = new ImageProcess();
+	g_depthprocess = new Imagedepthprocess();
 }
 
 DCam::~DCam()
@@ -58,7 +60,7 @@ void DCam::run()
 	//	return;
 	//ushort *uc = (ushort*)ptr_buf;
 	//version = *uc;
-	//g_depthprocess.version = version;
+	//g_depthprocess->version = version;
 
 	//过曝点使能
 	inter = send_adcOverflow + "1";
@@ -78,9 +80,9 @@ void DCam::run()
 	{
 		
 		//图像处理参数
-		g_depthprocess.maxdepth = maxdepth;
-		g_depthprocess.mindepth = mindepth;
-		g_depthprocess.saveimagestate = saveimagestate;
+		g_depthprocess->maxdepth = maxdepth;
+		g_depthprocess->mindepth = mindepth;
+		g_depthprocess->saveimagestate = saveimagestate;
 		
 		if (integrationtime3Dflag)
 		{
@@ -121,25 +123,26 @@ void DCam::run()
 			
 		}
 		
-		cv::Mat img_show;
-		g_depthprocess.isHDR = isHDR;
-		g_depthprocess.isRawCalibration = isRawCalibration;
+		cv::Mat img_show;	
+		peopleImg = cv::Mat::zeros(cv::Size(320, 240), CV_8UC1);
+
+		g_depthprocess->isHDR = isHDR;
+		g_depthprocess->isRawCalibration = isRawCalibration;
 		if (n == 1)
 		{
 			//获取数据成功
-			g_depthprocess.ptr_buf_unsigned = (unsigned char*)ptr_buf;	//设置图像处理数据指针
-			img_show = g_depthprocess.depthProcess();					//获取处理图像
-			//if (isPointCloudConvert)
-			{
-				//点云变换
-				PointCloudT::Ptr cloud = g_pclConvert.getPointCloud(g_depthprocess.getDepth(),img_show,isColormapPoint,pointFilterSize);
+			g_depthprocess->ptr_buf_unsigned = (unsigned char*)ptr_buf;	//设置图像处理数据指针
+			img_show = g_depthprocess->depthProcess();					//获取处理图像
 
-				emit(getPointCloud(cloud));
+
+			if (issaveVideo)
+			{
+				write << img_show;
 			}
 		}
 		else if (n == 12)
 		{
-			g_depthprocess.realTempChip=setRealTemperature(ptr_buf);
+			g_depthprocess->realTempChip=setRealTemperature(ptr_buf);
 			n = 0;
 		}
 
@@ -173,7 +176,7 @@ void DCam::setPointcloudConvert(bool isConvert)
 void DCam::setCameraParameters(double fx, double fy, double cx, double cy, double k1, double k2, double p1, double p2, double k3)
 {
 	g_pclConvert.setConvertParameter(fx, fy, cx, cy, k1, k2, 0, 0, 0);
-	//g_depthprocess.setConvertParameter(fx, fy, cx, cy, k1, k2, 0, 0, k3);
+	//g_depthprocess->setConvertParameter(fx, fy, cx, cy, k1, k2, 0, 0, k3);
 }
 
 //获取运行状态
@@ -205,7 +208,7 @@ int DCam::setRealTemperature(char *buf)
 cv::Mat DCam::getDepth()
 {
 	cv::Mat dcam_imageinfor;            //深度图像
-	dcam_imageinfor = g_depthprocess.getDepth();
+	dcam_imageinfor = g_depthprocess->getDepth();
 	return dcam_imageinfor.clone();
 }
 
@@ -229,7 +232,7 @@ void DCam::setPointFilterSize(int value)
 void DCam::setHorizontalFlip(bool isChecked)
 {
 	this->horizontalFlipFlag = isChecked;
-	g_depthprocess.isHorizontalFlip = isChecked;
+	g_depthprocess->isHorizontalFlip = isChecked;
 }
 
 //设置图像垂直翻转
@@ -238,7 +241,7 @@ void DCam::setVerticalFlip(bool isChecked)
 {
 
 	this->verticalFlipFlag = isChecked;
-	g_depthprocess.isVerticalFlip = isChecked;
+	g_depthprocess->isVerticalFlip = isChecked;
 }
 
 
@@ -255,5 +258,5 @@ ushort DCam::getVersion()
 //输入：value 偏移量
 void DCam::setOffset(int value)
 {
-	g_depthprocess.offset = value;
+	g_depthprocess->offset = value;
 }

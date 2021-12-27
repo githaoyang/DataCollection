@@ -1,13 +1,14 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdint.h>
+
 #include <opencv2\opencv.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
 #include <string>
 #include <qmessagebox.h>
+
 using namespace std;
+
 
 #define bytecount 153600
 #define Img_width   (320)

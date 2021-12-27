@@ -3,14 +3,19 @@
 #include <QThread>
 #include <opencv2/opencv.hpp>
 #include <string>
-#include<qstring.h>
+#include <qstring.h>
 #include <QMetaType>
-#include<qdebug.h>
-#include<time.h>
+#include <qdebug.h>
+#include <time.h>
+#include <stdint.h>
+//#include <opencv2/imgproc/imgproc.hpp>
+//#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/videoio.hpp>
 
 #include "TinySocket.h"
 #include "Depthprocess.h"
 #include "PCLConvert.h"
+#inlcude "ImageProcess.h"
 
 
 #define COLORMAP_MAX_DEPTH 30000
@@ -64,9 +69,13 @@ public:
 	QString savestr;					//保存路径
 	QString saveAmpstr;
 	QString savePcdStr;					//点云保存路径
-	
+	cv::VideoWriter write;
+	bool issaveVideo = false;		//是够开始保存视频标志位
+	bool isBodyPhotoConvert = false;	//是否提取人物身体图片
+	cv::Mat peopleImg;
 
-signals:
+signals: 
+	void getBodyPhoto( );
 	void getImage(cv::Mat,float, int);//获取图像后信号,Mat格式传回图像信息，第一个int为返回帧率，第二int传回是否是图像0不是图像，1是图像，-1异常
 	void getPointCloud(PointCloudT::Ptr);	//获取点云信号
 
@@ -75,7 +84,8 @@ protected:
 	void run();							//继承自QThread，线程运行函数
 
 private:
-	Imagedepthprocess g_depthprocess;	//原始图像处理类
+	Imagedepthprocess *g_depthprocess;	//原始图像处理类
+	ImageProcess *g_imageProcess;
 	CTinySocket	g_Tcpsocket;			//SOCKET类
 	PCLConvert	g_pclConvert;			//点云转换使用
 	bool isRun = false;					//是否运行

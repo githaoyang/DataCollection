@@ -28,15 +28,29 @@ DataCollection::DataCollection(QWidget *parent)
 	QObject::connect(ui.connectButton, SIGNAL(clicked()), this, SLOT(connectButtonPressedSlot()));
 	QObject::connect(ui.IntegrationtimelineEdit, SIGNAL(editingFinished()), this, SLOT(setIntegrationTime3DSlot()));
 	QObject::connect(ui.IntegrationtimeHDRlineEdit, SIGNAL(editingFinished()), this, SLOT(setIntegrationTime3DHDRSlot()));	
-	QObject::connect(ui.checkBoxHDR, SIGNAL(clicked()), this, SLOT(setHDRSlot()));
+
 	QObject::connect(g_dcam, SIGNAL(getImage(cv::Mat,float,int)), this, SLOT(imageUpdateSlot(cv::Mat,float,int)));	//设置连接槽
 	QObject::connect(g_dcam, SIGNAL(getPointCloud(PointCloudT::Ptr)), this, SLOT(pointCloudUpdateSlot(PointCloudT::Ptr)));		//设置槽连接
+
+	QObject::connect(g_dcam, SIGNAL(getBodyPhoto()), this, SLOT(bodyImageUpdateSlot()));		//设置槽连接
+	
+
+	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(browseButtonPressedSlot()));
+	QObject::connect(ui.startButton, SIGNAL(clicked()), this, SLOT(startButtonPressedSlot()));
+	QObject::connect(ui.finishButton, SIGNAL(clicked()), this, SLOT(finishButtonPressedSlot()));
+
+	QObject::connect(ui.checkBoxHDR, SIGNAL(clicked()), this, SLOT(setHDRSlot()));
+	QObject::connect(ui.pointCloudCheckBox, SIGNAL(clicked()), this, SLOT(pclConvertSlot()));
+	QObject::connect(ui.bodySegmentCheckBox, SIGNAL(clicked()), this, SLOT(bodyPhotoConcertSlot()));
+	//QObject::connect(ui.chooseButton, SIGNAL(clicked()), this, SLOT(chooseButtonPressedSlot()));
+	//QObject::connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(saveButtonPressedSlot()));
+	
 		
 		
 	setHDRSlot();
 	setIntegrationTime3DSlot();
 	setIntegrationTime3DHDRSlot();
-
+	pclConvertSlot();
 
 
 }
@@ -48,7 +62,7 @@ void DataCollection::connectButtonPressedSlot()
 	{
 		//启动相机，获取图像
 		std::string ip = ui.IplineEdit->text().toStdString();    //获取相机IP
-		int port = ui.PortlineEdit->text().toInt();      //获取相机端口号
+		int port = 50660;//ui.PortlineEdit->text().toInt();      //获取相机端口号
 		g_dcam->setNet(ip, port);						 //初始化相机类
 
 		g_dcam->start();	//线程启动
@@ -85,8 +99,8 @@ void DataCollection::showImage(Mat imshowsrc)
 {
 	Mat imgShow = imshowsrc.clone();
 
-	cv::cvtColor(imgShow, imgShow, COLOR_BGR2RGB);//Opencv默认BGR存储，Qt需要RGB
-	QImage img = QImage((uchar*)(imgShow.data), imgShow.cols, imgShow.rows, QImage::Format_RGB888);
+	//cv::cvtColor(imgShow, imgShow, COLOR_BGR2RGB);//Opencv默认BGR存储，Qt需要RGB
+	QImage img = QImage((imgShow.data), imgShow.cols, imgShow.rows, QImage::Format_Grayscale8);
 
 	int width = ui.Img_label->size().width();
 	int height = ui.Img_label->size().height();
@@ -125,9 +139,9 @@ void DataCollection::imageUpdateSlot(cv::Mat img, float frame , int isImg)
 			ui.connectButton->setText(tr("Disconnect"));
 
 			//处理原始数据
-			cv::Mat imshowsrc = img;
+			//cv::Mat imshowsrc = img;
 			//显示伪彩色图
-			showImage(imshowsrc);
+			showImage(img);
 			showFrame(frame);
 
 		}
@@ -182,6 +196,22 @@ void DataCollection::setHDRSlot()
 	g_dcam->isHDRflag = true; //更新isHDR命令发送标志
 }
 
+
+void DataCollection::bodyPhotoConcertSlot()
+{ 
+	g_dcam->isBodyPhotoConvert = ui.bodySegmentCheckBox->isChecked();
+	
+}
+
+
+void DataCollection::bodyImageUpdateSlot()
+{
+	Mat img = g_dcam->peopleImg;
+	QImage image = QImage((img.data), img.cols, img.rows, QImage::Format_Grayscale8);
+	ui.Seg_label->setPixmap(QPixmap::fromImage(image));
+	ui.Seg_label->repaint();
+}
+
 //帧率显示
 void DataCollection::showFrame(float frame)
 {
@@ -207,4 +237,52 @@ void DataCollection::showPointCloud()
 	viewer->updatePointCloud(cloud, "cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
 	ui.screen->update();
+}
+
+//显示点云
+void DataCollection::pclConvertSlot()
+{
+	g_dcam->setPointcloudConvert(ui.pointCloudCheckBox->isChecked());
+}
+
+void DataCollection::browseButtonPressedSlot()
+{
+	QString path = QFileDialog::getExistingDirectory(this, tr("choose"), "/");
+	if (path.length() == 0)
+	{
+		QMessageBox::information(NULL, tr("Path"), tr("You didn't select any path."));
+	}
+	else
+	{
+		ui.pathlineEdit->setText(path);
+
+	}
+}
+
+void DataCollection::startButtonPressedSlot()
+{
+	if (ui.pathlineEdit->text().isEmpty())
+	{
+		QMessageBox::information(NULL, tr("Path"), tr("Choose a path."));
+	}
+	else
+	{
+		sprintf(filename, "/action_sample%d.avi", i);
+		string s = filename;
+		string str = ui.pathlineEdit->text().toStdString();
+		pathname = str + s;
+		i++;
+		g_dcam->write.open(pathname, CV_FOURCC('M', 'J', 'P', 'G'), 5, Size(320, 240));
+		g_dcam->issaveVideo = 1;
+		
+		//按钮状态改变
+		ui.startButton->setText("saving");
+	}
+}
+void DataCollection::finishButtonPressedSlot()
+{
+	ui.startButton->setText("start");
+	g_dcam->issaveVideo = 0;
+	g_dcam->write.release();
+
 }

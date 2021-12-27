@@ -13,11 +13,7 @@ VTK_MODULE_INIT(vtkInteractionStyle);
 #include <Windows.h>
 #include <iostream>
 #include <fstream>
-#include "Depthprocess.h"
-#include "TinySocket.h"
-#include "PCLConvert.h"
 #include "DCam.h"
-#include <qtimer.h>
 #include <qfile.h>
 #include <qfiledialog.h>  
 #include <QMouseEvent>
@@ -42,6 +38,15 @@ public:
 	DCam *g_dcam;
 	void showImage(cv::Mat imshowsrc);//显示图像
 	void showFrame(float frame); //显示帧率
+	
+	
+	string pathname;                        //文件路径名
+	string image_pathname;
+	char filename[256];                    //视频编号
+	char image_filename[256];
+	int i = 1;
+	int j = 1;
+
 
 private:
     Ui::DataCollectionClass ui;
@@ -53,12 +58,17 @@ private:
 
 private slots:
 	void imageUpdateSlot(cv::Mat img, float frame, int isImg);	//更新图像信号
+	void bodyImageUpdateSlot();
+	void pointCloudUpdateSlot(PointCloudT::Ptr c);	//更新点云信息
 	void connectButtonPressedSlot();	//连接按钮点击槽
 	void setIntegrationTime3DSlot();	//设置3D积分时间
 	void setIntegrationTime3DHDRSlot(); 
 	void setHDRSlot();
-	void pointCloudUpdateSlot(PointCloudT::Ptr c);	//更新点云信息
+	void bodyPhotoConcertSlot();
 	void showPointCloud();
-
+	void pclConvertSlot();			//显示点云并提取人体
+	void browseButtonPressedSlot(); //选择文件路径
+	void startButtonPressedSlot();    //开始进行样本录制
+	void finishButtonPressedSlot();   //结束样本录制
 
 };
