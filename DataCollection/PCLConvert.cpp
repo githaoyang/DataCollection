@@ -158,12 +158,12 @@ void  PCLConvert::filterCloud(int distanceFilterParameter,
 	extract.filter(*pointcloud);
 	
 	//半径滤波
-	//pcl::RadiusOutlierRemoval<PointT> outrem;
-	//outrem.setInputCloud(pointcloud);
-	//outrem.setRadiusSearch(radiusFilterRadiusParameter);
-	//outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
-	//// apply filter
-	//outrem.filter(*pointcloud);
+	pcl::RadiusOutlierRemoval<PointT> outrem;
+	outrem.setInputCloud(pointcloud);
+	outrem.setRadiusSearch(radiusFilterRadiusParameter);
+	outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
+	// apply filter
+	outrem.filter(*pointcloud);
 	
 	//分割出人物所在的点云团（找最大的点云）
 	pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>);

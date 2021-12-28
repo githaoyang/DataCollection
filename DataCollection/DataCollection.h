@@ -72,5 +72,5 @@ private slots:
 	void browseButtonPressedSlot(); //选择文件路径
 	void startButtonPressedSlot();    //开始进行样本录制
 	void finishButtonPressedSlot();   //结束样本录制
-
+	void updateCloudFrameRateSlot(float);
 };

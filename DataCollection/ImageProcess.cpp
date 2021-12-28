@@ -22,6 +22,7 @@ void ImageProcess::run()
 {
 	while(1)
 	{
+		clock_t startT = clock();
 		cv::Mat peopleImg = cv::Mat::zeros(cv::Size(320, 240), CV_8UC1);
 		if (isPointCloudConvert || isBodyPhotoConvert)
 		{
@@ -44,6 +45,10 @@ void ImageProcess::run()
 			}
 			//
 		}
-
+		clock_t endT = clock();
+		//防止占用过多资源，导致卡死
+		_sleep(1);
+		float frame_rate = CLOCKS_PER_SEC / (double)(endT - startT);
+		emit getCloudFrameRate(frame_rate);
 	}
 }

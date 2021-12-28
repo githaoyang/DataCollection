@@ -32,6 +32,7 @@ public:
 signals:
 	void getBodyPhoto(cv::Mat);
 	void getPointCloud(PointCloudT::Ptr);	//获取点云信号
+	void getCloudFrameRate(float);
 
 protected:
 	void run();							//继承自QThread，线程运行函数

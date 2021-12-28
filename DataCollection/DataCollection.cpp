@@ -34,6 +34,7 @@ DataCollection::DataCollection(QWidget *parent)
 	QObject::connect(g_dcam, SIGNAL(getImage(cv::Mat,float,int)), this, SLOT(imageUpdateSlot(cv::Mat,float,int)));	//设置连接槽
 	QObject::connect(g_imageProcess, SIGNAL(getPointCloud(PointCloudT::Ptr)), this, SLOT(pointCloudUpdateSlot(PointCloudT::Ptr)));		//设置槽连接
 	QObject::connect(g_imageProcess, SIGNAL(getBodyPhoto(cv::Mat)), this, SLOT(bodyImageUpdateSlot(cv::Mat)));		//设置槽连接
+	QObject::connect(g_imageProcess, SIGNAL(getCloudFrameRate(float)), this, SLOT(updateCloudFrameRateSlot(float)));		//设置槽连接
 	
 
 	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(browseButtonPressedSlot()));
@@ -287,4 +288,9 @@ void DataCollection::finishButtonPressedSlot()
 	g_dcam->issaveVideo = 0;
 	g_dcam->write.release();
 
+}
+
+void DataCollection::updateCloudFrameRateSlot(float rate)
+{
+	ui.cloudFramelineEdit->setText(QString::number(rate));
 }

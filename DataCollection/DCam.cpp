@@ -74,7 +74,8 @@ void DCam::run()
 	//主循环
 	while (isRun)
 	{
-		
+
+		start = clock();
 		//图像处理参数
 		g_depthprocess->maxdepth = maxdepth;
 		g_depthprocess->mindepth = mindepth;
@@ -109,16 +110,12 @@ void DCam::run()
 		}
 		else
 		{
-			start = clock();
 			//获取深度数据
 			n = g_Tcpsocket.socket_com(send_distance, bytecount, (char*)g_Tcpsocket._ip.c_str(), g_Tcpsocket._port, ptr_buf);	
 			//tempReadDelay++;
-			end = clock();
-			//计算帧率
-			frame = (float)frametime / (end - start);
+			
 			
 		}
-		
 		cv::Mat img_show;	
 
 		g_depthprocess->isHDR = isHDR;
@@ -132,7 +129,15 @@ void DCam::run()
 
 			if (issaveVideo)
 			{
-				write << img_show;
+				//合成三通道图片写入视频，单通道无效
+				cv::Mat three_channel = cv::Mat::zeros(img_show.size(), CV_8UC3);
+				vector<cv::Mat> channels;
+				for (int i = 0; i < 3; i++)
+				{
+					channels.push_back(img_show);
+				}
+				merge(channels, three_channel);
+				write << three_channel;
 			}
 		}
 		else if (n == 12)
@@ -140,7 +145,9 @@ void DCam::run()
 			g_depthprocess->realTempChip=setRealTemperature(ptr_buf);
 			n = 0;
 		}
-
+		end = clock();
+		//计算帧率
+		frame = (float)frametime / (end - start);
 		emit getImage(img_show,frame,n);		//成功得到图片，返回uchar图片，否则返回img的size为0*0
 	}
 }
