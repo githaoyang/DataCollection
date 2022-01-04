@@ -61,7 +61,7 @@ DataCollection::DataCollection(QWidget *parent)
 	setIntegrationTime3DHDRSlot();
 	pclConvertSlot();
 	bodyPhotoConvertSlot();
-	//MHIConvertSlot();
+	MHIConvertSlot();
 
 }
 
@@ -77,6 +77,7 @@ void DataCollection::connectButtonPressedSlot()
 
 		g_dcam->start();	//线程启动
 		g_imageProcess->start();		//线程启动
+		g_actionRecognition->start();		//线程启动
 
 		//按钮状态改变
 		QPalette pa;
@@ -260,7 +261,6 @@ void DataCollection::MHIConvertSlot()
 {
 	g_actionRecognition->isMHIConvert = ui.MHIcheckBox->isChecked();
 
-	g_actionRecognition->start();		//线程启动
 }
 
 void DataCollection::browseButtonPressedSlot()
