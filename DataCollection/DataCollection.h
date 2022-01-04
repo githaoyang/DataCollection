@@ -26,6 +26,7 @@ VTK_MODULE_INIT(vtkInteractionStyle);
 #include <pcl/point_cloud.h>
 
 #include "ImageProcess.h"
+#include "ActionRecognition.h"
 
 using namespace std;
 using namespace cv;
@@ -38,6 +39,7 @@ public:
     DataCollection(QWidget *parent = Q_NULLPTR);
 	DCam *g_dcam;
 	ImageProcess *g_imageProcess;
+	ActionRecognition *g_actionRecognition;
 	void showImage(cv::Mat imshowsrc);//显示图像
 	void showFrame(float frame); //显示帧率
 	
@@ -49,6 +51,8 @@ public:
 	int i = 1;
 	int j = 1;
 
+signals: 
+	void getFileImage(cv::Mat, float, int);
 
 private:
     Ui::DataCollectionClass ui;
@@ -68,9 +72,11 @@ private slots:
 	void setHDRSlot();
 	void bodyPhotoConcertSlot();
 	void showPointCloud();
-	void pclConvertSlot();			//显示点云并提取人体
-	void browseButtonPressedSlot(); //选择文件路径
+	void pclConvertSlot();				//显示点云并提取人体
+	void browseButtonPressedSlot();		//选择文件路径
 	void startButtonPressedSlot();    //开始进行样本录制
 	void finishButtonPressedSlot();   //结束样本录制
 	void updateCloudFrameRateSlot(float);
+	void updateMHISlot(cv::Mat);
+
 };

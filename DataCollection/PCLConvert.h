@@ -42,9 +42,12 @@ public:
 	PointCloudT::Ptr pointcloud;					//点云指针 
 	std::unordered_map<double, std::pair<int, int>> distanceMap;
 
+	bool isPhotoUpdate = false;			//是否有新图像传入
+	cv::Mat outputImg;
 
 private:
 	cv::Mat undistImg(cv::Mat src);		//畸变矫正
+	cv::Mat element;
 
 	double fx;
 	double fy;

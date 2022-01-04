@@ -129,15 +129,7 @@ void DCam::run()
 
 			if (issaveVideo)
 			{
-				//合成三通道图片写入视频，单通道无效
-				cv::Mat three_channel = cv::Mat::zeros(img_show.size(), CV_8UC3);
-				vector<cv::Mat> channels;
-				for (int i = 0; i < 3; i++)
-				{
-					channels.push_back(img_show);
-				}
-				merge(channels, three_channel);
-				write << three_channel;
+				write << img_show;
 			}
 		}
 		else if (n == 12)

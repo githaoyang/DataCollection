@@ -6,6 +6,7 @@ PCLConvert::PCLConvert()
 	//设置校正参数
 	setConvertParameter(306.2581793, 306.231918150968, 168.733463661578,
 		127.631101483708, -0.187431077194205, 0.727853724252657, 0, 0, -0.967607914754638);
+	element = getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
 }
 
 
@@ -158,12 +159,12 @@ void  PCLConvert::filterCloud(int distanceFilterParameter,
 	extract.filter(*pointcloud);
 	
 	//半径滤波
-	pcl::RadiusOutlierRemoval<PointT> outrem;
-	outrem.setInputCloud(pointcloud);
-	outrem.setRadiusSearch(radiusFilterRadiusParameter);
-	outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
-	// apply filter
-	outrem.filter(*pointcloud);
+	//pcl::RadiusOutlierRemoval<PointT> outrem;
+	//outrem.setInputCloud(pointcloud);
+	//outrem.setRadiusSearch(radiusFilterRadiusParameter);
+	//outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
+	//// apply filter
+	//outrem.filter(*pointcloud);
 	
 	//分割出人物所在的点云团（找最大的点云）
 	pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>);
@@ -212,4 +213,7 @@ void PCLConvert::convertToPhoto(cv::Mat & img, cv::Mat rawImg)
 		std::pair<int, int> posi = distanceMap[i.z];
 		img.at<uchar>(posi.first, posi.second) = rawImg.at<uchar>(posi.first, posi.second);
 	}
+	cv::morphologyEx(img, img, cv::MORPH_OPEN, element);
+	outputImg = img.clone();
+	isPhotoUpdate = true;
 }

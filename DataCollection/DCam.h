@@ -70,6 +70,7 @@ public:
 	cv::VideoWriter write;
 	bool issaveVideo = false;		//是够开始保存视频标志位
 	bool isBodyPhotoConvert = false;	//是否提取人物身体图片
+	bool isRun = false;					//是否运行
 
 signals: 
 	//void getBodyPhoto( );
@@ -82,7 +83,6 @@ protected:
 
 private:
 	CTinySocket	g_Tcpsocket;			//SOCKET类
-	bool isRun = false;					//是否运行
 	bool isPointCloudConvert = false;	//是否点云转换
 	bool isColormapPoint = false;		//是否点云伪彩色
 	int  pointFilterSize = 0;			//点云密度设置（平衡点云和速度）

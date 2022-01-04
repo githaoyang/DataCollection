@@ -9,6 +9,9 @@ DataCollection::DataCollection(QWidget *parent)
 	g_imageProcess = new ImageProcess();
 	g_imageProcess->g_depthprocess = g_dcam->g_depthprocess;
 
+	g_actionRecognition = new ActionRecognition();
+	g_actionRecognition->g_pclConvert = g_imageProcess->g_pclConvert;
+
 	//点云初始化
 	cloud.reset(new PointCloudT);
 	cloud->resize(1);
@@ -35,7 +38,8 @@ DataCollection::DataCollection(QWidget *parent)
 	QObject::connect(g_imageProcess, SIGNAL(getPointCloud(PointCloudT::Ptr)), this, SLOT(pointCloudUpdateSlot(PointCloudT::Ptr)));		//设置槽连接
 	QObject::connect(g_imageProcess, SIGNAL(getBodyPhoto(cv::Mat)), this, SLOT(bodyImageUpdateSlot(cv::Mat)));		//设置槽连接
 	QObject::connect(g_imageProcess, SIGNAL(getCloudFrameRate(float)), this, SLOT(updateCloudFrameRateSlot(float)));		//设置槽连接
-	
+	//QObject::connect(g_actionRecognition, SIGNAL(getMHIImage(cv::Mat)), this, SLOT(updateMHISlot(cv::Mat)));		//设置槽连接
+
 
 	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(browseButtonPressedSlot()));
 	QObject::connect(ui.startButton, SIGNAL(clicked()), this, SLOT(startButtonPressedSlot()));
@@ -270,16 +274,26 @@ void DataCollection::startButtonPressedSlot()
 	}
 	else
 	{
-		sprintf(filename, "/action_sample%d.avi", i);
-		string s = filename;
-		string str = ui.pathlineEdit->text().toStdString();
-		pathname = str + s;
-		i++;
-		g_dcam->write.open(pathname, CV_FOURCC('M', 'J', 'P', 'G'), 5, Size(320, 240));
-		g_dcam->issaveVideo = 1;
-		
-		//按钮状态改变
-		ui.startButton->setText("saving");
+		if (g_dcam->issaveVideo == 0)
+		{
+			sprintf(filename, "/action_sample%d.avi", i);
+			string s = filename;
+			string str = ui.pathlineEdit->text().toStdString();
+			pathname = str + s;
+			i++;
+			g_dcam->write.open(pathname, CV_FOURCC('M', 'J', 'P', 'G'), 5, Size(320, 240), false);
+			g_dcam->issaveVideo = 1;
+
+			//按钮状态改变
+			ui.startButton->setText("saving");
+
+			//更改颜色
+			ui.startButton->setStyleSheet("background-color: rgb(0, 255, 0);");
+		}
+		else
+		{
+			finishButtonPressedSlot();
+		}
 	}
 }
 void DataCollection::finishButtonPressedSlot()
@@ -287,10 +301,21 @@ void DataCollection::finishButtonPressedSlot()
 	ui.startButton->setText("start");
 	g_dcam->issaveVideo = 0;
 	g_dcam->write.release();
+	//更改颜色
+	ui.startButton->setStyleSheet(ui.finishButton->styleSheet());
 
 }
 
 void DataCollection::updateCloudFrameRateSlot(float rate)
 {
 	ui.cloudFramelineEdit->setText(QString::number(rate));
+}
+
+
+void DataCollection::updateMHISlot(cv::Mat img)
+{
+	QImage image = QImage((img.data), img.cols, img.rows, QImage::Format_Grayscale8);
+	ui.Gray_label->setPixmap(QPixmap::fromImage(image));
+	ui.Gray_label->repaint();
+
 }

@@ -45,7 +45,7 @@
            <item row="0" column="1">
             <widget class="QLineEdit" name="IplineEdit">
              <property name="text">
-              <string>192.168.7.202</string>
+              <string>192.168.7.203</string>
              </property>
             </widget>
            </item>
@@ -323,16 +323,9 @@
     <item row="1" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
-       <widget class="QPushButton" name="openPhotoButton">
+       <widget class="QPushButton" name="openVideoButton">
         <property name="text">
-         <string>读取图片</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="savePCDButton">
-        <property name="text">
-         <string>保存点云</string>
+         <string>读取视频</string>
         </property>
        </widget>
       </item>
@@ -363,7 +356,7 @@
       <item>
        <widget class="QLineEdit" name="fileNameLineEdit">
         <property name="text">
-         <string>C:\Users\haoyang\Desktop\depth photo\dongzxuo</string>
+         <string>G:/action_collect/</string>
         </property>
        </widget>
       </item>
@@ -441,13 +434,13 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>520</y>
      <width>231</width>
-     <height>51</height>
+     <height>52</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
