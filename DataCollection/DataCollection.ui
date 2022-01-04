@@ -200,7 +200,7 @@
     <item row="1" column="0">
      <widget class="QGroupBox" name="groupBox_6">
       <property name="title">
-       <string>WDD-MHI</string>
+       <string>MHI</string>
       </property>
       <widget class="QLabel" name="Gray_label">
        <property name="geometry">
@@ -293,9 +293,9 @@
      </widget>
     </item>
     <item row="1" column="0" colspan="2">
-     <widget class="QCheckBox" name="checkBox_3">
+     <widget class="QCheckBox" name="MHIcheckBox">
       <property name="text">
-       <string>MHI/DMM</string>
+       <string>MHI</string>
       </property>
      </widget>
     </item>

@@ -70,7 +70,7 @@ private slots:
 	void setIntegrationTime3DSlot();	//设置3D积分时间
 	void setIntegrationTime3DHDRSlot(); 
 	void setHDRSlot();
-	void bodyPhotoConcertSlot();
+	void bodyPhotoConvertSlot();
 	void showPointCloud();
 	void pclConvertSlot();				//显示点云并提取人体
 	void browseButtonPressedSlot();		//选择文件路径
@@ -78,5 +78,7 @@ private slots:
 	void finishButtonPressedSlot();   //结束样本录制
 	void updateCloudFrameRateSlot(float);
 	void updateMHISlot(cv::Mat);
+	void MHIConvertSlot();
+
 
 };

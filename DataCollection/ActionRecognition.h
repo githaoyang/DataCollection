@@ -19,6 +19,8 @@ public:
 
 	PCLConvert	*g_pclConvert;			//点云转换使用
 
+	bool isMHIConvert = false;
+
 signals:
 	void getMHIImage(cv::Mat);
 

@@ -38,7 +38,8 @@ DataCollection::DataCollection(QWidget *parent)
 	QObject::connect(g_imageProcess, SIGNAL(getPointCloud(PointCloudT::Ptr)), this, SLOT(pointCloudUpdateSlot(PointCloudT::Ptr)));		//设置槽连接
 	QObject::connect(g_imageProcess, SIGNAL(getBodyPhoto(cv::Mat)), this, SLOT(bodyImageUpdateSlot(cv::Mat)));		//设置槽连接
 	QObject::connect(g_imageProcess, SIGNAL(getCloudFrameRate(float)), this, SLOT(updateCloudFrameRateSlot(float)));		//设置槽连接
-	//QObject::connect(g_actionRecognition, SIGNAL(getMHIImage(cv::Mat)), this, SLOT(updateMHISlot(cv::Mat)));		//设置槽连接
+	
+	QObject::connect(g_actionRecognition, SIGNAL(getMHIImage(cv::Mat)), this, SLOT(updateMHISlot(cv::Mat)));		//设置槽连接
 
 
 	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(browseButtonPressedSlot()));
@@ -47,7 +48,9 @@ DataCollection::DataCollection(QWidget *parent)
 
 	QObject::connect(ui.checkBoxHDR, SIGNAL(clicked()), this, SLOT(setHDRSlot()));
 	QObject::connect(ui.pointCloudCheckBox, SIGNAL(clicked()), this, SLOT(pclConvertSlot()));
-	QObject::connect(ui.bodySegmentCheckBox, SIGNAL(clicked()), this, SLOT(bodyPhotoConcertSlot()));
+	QObject::connect(ui.bodySegmentCheckBox, SIGNAL(clicked()), this, SLOT(bodyPhotoConvertSlot()));
+	QObject::connect(ui.MHIcheckBox, SIGNAL(clicked()), this, SLOT(MHIConvertSlot()));
+	
 	//QObject::connect(ui.chooseButton, SIGNAL(clicked()), this, SLOT(chooseButtonPressedSlot()));
 	//QObject::connect(ui.saveButton, SIGNAL(clicked()), this, SLOT(saveButtonPressedSlot()));
 	
@@ -57,7 +60,8 @@ DataCollection::DataCollection(QWidget *parent)
 	setIntegrationTime3DSlot();
 	setIntegrationTime3DHDRSlot();
 	pclConvertSlot();
-
+	bodyPhotoConvertSlot();
+	//MHIConvertSlot();
 
 }
 
@@ -247,9 +251,16 @@ void DataCollection::pclConvertSlot()
 }
 
 
-void DataCollection::bodyPhotoConcertSlot()
+void DataCollection::bodyPhotoConvertSlot()
 {
 	g_imageProcess->isBodyPhotoConvert = ui.bodySegmentCheckBox->isChecked();
+}
+
+void DataCollection::MHIConvertSlot()
+{
+	g_actionRecognition->isMHIConvert = ui.MHIcheckBox->isChecked();
+
+	g_actionRecognition->start();		//线程启动
 }
 
 void DataCollection::browseButtonPressedSlot()

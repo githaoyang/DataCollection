@@ -18,7 +18,7 @@ void ActionRecognition::run()
 {
 	while (1)
 	{
-		if (g_pclConvert->isPhotoUpdate == false)
+		if (!isMHIConvert || g_pclConvert->isPhotoUpdate == false)
 		{
 			_sleep(10);
 			continue;
