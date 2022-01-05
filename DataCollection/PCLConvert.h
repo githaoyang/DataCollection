@@ -25,6 +25,8 @@
 #include <pcl/search/kdtree.h>
 #include <pcl/kdtree/kdtree.h>
 
+#include <pcl/features/normal_3d.h>
+
 typedef pcl::PointXYZRGBA PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
 

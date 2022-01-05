@@ -31,7 +31,7 @@ void ImageProcess::run()
 			g_pclConvert->getPointCloud(rawDepthImg);
 			if (isPointCloudConvert)
 			{
-				g_pclConvert->filterCloud(10000, 150, 25, 200);
+				g_pclConvert->filterCloud(12000, 150, 25, 200);
 
 				emit(getPointCloud(g_pclConvert->pointcloud));
 			}

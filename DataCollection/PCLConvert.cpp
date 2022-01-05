@@ -2,7 +2,7 @@
 
 
 PCLConvert::PCLConvert()
-{ 
+{
 	//设置校正参数
 	setConvertParameter(306.2581793, 306.231918150968, 168.733463661578,
 		127.631101483708, -0.187431077194205, 0.727853724252657, 0, 0, -0.967607914754638);
@@ -140,13 +140,19 @@ void  PCLConvert::filterCloud(int distanceFilterParameter,
 	pass.filter(*pointcloud);
 
 	//平面分割，去除地面
+	PointCloudT::Ptr tempCloud(new PointCloudT);
+	PointCloudT::Ptr planeCloud(new PointCloudT);					//点云指针 
+	PointCloudT::Ptr firstExtratCloud(new PointCloudT);					//点云指针 
+	pcl::copyPointCloud(*pointcloud, *tempCloud);
+
 	pcl::SACSegmentation<PointT> seg; // 创建一个分割方法
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);//申明模型的参数
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);//申明存储模型的内点的索引
+	pcl::PointIndices::Ptr inliers_body(new pcl::PointIndices);//申明存储模型的内点的索引
 
 	seg.setOptimizeCoefficients(true); // 这一句可以选择最优化参数的因子
-	seg.setModelType(pcl::SACMODEL_PLANE);	//平面模型
-	seg.setMethodType(pcl::SAC_RANSAC);		//分割平面模型所使用的分割方法
+	seg.setModelType(pcl::SACMODEL_PLANE); //平面模型
+	seg.setMethodType(pcl::SAC_RANSAC); //分割平面模型所使用的分割方法
 	seg.setDistanceThreshold(ransacFilterParameter); //设置最小的阀值距离
 
 	seg.setInputCloud(pointcloud); //设置输入的点云
@@ -155,16 +161,42 @@ void  PCLConvert::filterCloud(int distanceFilterParameter,
 	pcl::ExtractIndices<PointT> extract; //ExtractIndices滤波器，基于某一分割算法提取点云中的一个子集
 	extract.setInputCloud(pointcloud);
 	extract.setIndices(inliers); //设置分割后的内点为需要提取的点集
-	extract.setNegative(true); //设置提取内点而非外点 或者相反
-	extract.filter(*pointcloud);
+
+	extract.setNegative(false); //设置提取内点而非外点 或者相反
+	extract.filter(*planeCloud);
+
+	float curvature;
+	Eigen::Vector4f plane_parameters;
+	pcl::computePointNormal(*planeCloud, plane_parameters, curvature);
+	if (abs(plane_parameters[1]) < 0.6)		//如果提取错误，那就再提取一次平面
+	{
+		extract.setNegative(true);		//提取除平面外的点云
+		extract.filter(*firstExtratCloud);
+
+		seg.setInputCloud(firstExtratCloud);	//设置输入的点云
+		seg.segment(*inliers_body, *coefficients);
+		extract.setInputCloud(firstExtratCloud);
+		extract.setIndices(inliers_body);	//设置分割后的内点为需要提取的点集
+		extract.setNegative(true);		//提取除平面外的点云
+		extract.filter(*pointcloud);
+		for (auto tempPointIndice : inliers->indices)
+		{
+			pointcloud->points.emplace_back((*tempCloud)[tempPointIndice]);
+		}
+	}
+	else
+	{
+		extract.setNegative(true); //设置提取内点而非外点 或者相反
+		extract.filter(*pointcloud);
+	} 
 	
 	//半径滤波
-	//pcl::RadiusOutlierRemoval<PointT> outrem;
-	//outrem.setInputCloud(pointcloud);
-	//outrem.setRadiusSearch(radiusFilterRadiusParameter);
-	//outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
-	//// apply filter
-	//outrem.filter(*pointcloud);
+	pcl::RadiusOutlierRemoval<PointT> outrem;
+	outrem.setInputCloud(pointcloud);
+	outrem.setRadiusSearch(radiusFilterRadiusParameter);
+	outrem.setMinNeighborsInRadius(radiusFilterPointParameter);
+	// apply filter
+	outrem.filter(*pointcloud);
 	
 	//分割出人物所在的点云团（找最大的点云）
 	pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>);
